@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clear Habit Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --paper: #F5F0E8;
+    --ink: #1A1714;
+    --ink-light: #4A4540;
+    --ink-faint: #9A9590;
+    --amber: #C8A96E;
+    --amber-dark: #A8893E;
+    --amber-light: #E8D5A8;
+    --amber-pale: #F5EDD8;
+    --rust: #C4704A;
+    --sage: #7A9E7E;
+    --line: #E0D8CC;
+    --dot: #D0C8B8;
+    --check: #C8A96E;
+    --shadow: rgba(26,23,20,0.08);
+    --shadow-deep: rgba(26,23,20,0.16);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: var(--cream);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .nav-logo span { color: var(--amber); }
+  .nav-tabs {
+    display: flex; gap: 2px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .nav-tab {
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--ink-faint);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.18s;
+  }
+  .nav-tab.active {
+    background: var(--cream);
+    color: var(--ink);
+    box-shadow: 0 1px 4px var(--shadow);
+  }
+  .nav-tab:hover:not(.active) { color: var(--ink-light); }
+  .nav-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── MAIN ── */
+  main {
+    margin-top: 56px;
+    min-height: calc(100vh - 56px);
+  }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    padding: 36px 40px 28px;
+    border-bottom: 1px solid var(--line);
+    background: var(--cream);
+  }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .section-header p {
+    font-size: 13px;
+    color: var(--ink-faint);
+    font-weight: 300;
+  }
+  .section-header .month-nav {
+    display: flex; align-items: center; gap: 16px;
+    margin-top: 16px;
+  }
+  .month-nav button {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-light);
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .month-nav button:hover { background: var(--paper); border-color: var(--amber); color: var(--amber-dark); }
+  .month-nav .month-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+  }
+
+  /* ═══════════════════════════════
+     HABIT TRACKER
+  ═══════════════════════════════ */
+  .tracker-body { padding: 32px 40px; }
+
+  .habit-grid-wrapper {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px var(--shadow);
+  }
+
+  .habit-grid {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .habit-grid th {
+    padding: 10px 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .habit-grid th.habit-name-col {
+    text-align: left;
+    padding-left: 20px;
+    width: 180px;
+  }
+  .habit-grid td {
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+  .habit-grid tr:last-child td { border-bottom: none; }
+  .habit-grid td.habit-name {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink);
+    border-right: 2px solid var(--line);
+    background: var(--paper);
+    min-width: 180px;
+  }
+  .habit-grid td.habit-name input {
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    width: 130px;
+    outline: none;
+  }
+  .habit-grid td.habit-name input::placeholder { color: var(--dot); font-style: italic; }
+
+  .day-cell {
+    text-align: center;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: background 0.12s;
+    min-width: 28px;
+  }
+  .day-cell:hover { background: var(--amber-pale); }
+
+  .dot-check {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--dot);
+    margin: 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    position: relative;
+  }
+  .dot-check.checked {
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+  .dot-check.checked::after {
+    content: '';
+    width: 6px; height: 4px;
+    border-left: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
+    display: block;
+  }
+  .dot-check.missed {
+    border-color: var(--rust);
+    opacity: 0.4;
+  }
+  .dot-check.missed::after {
+    content: '×';
+    font-size: 11px;
+    color: var(--rust);
+    line-height: 1;
+  }
+
+  /* streak badge */
+  .streak-cell {
+    padding: 8px 16px 8px 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-align: center;
+    border-right: none !important;
+  }
+  .streak-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--amber-pale);
+    color: var(--amber-dark);
+    font-weight: 500;
+  }
+
+  /* add habit row */
+  .add-habit-row td {
+    padding: 12px 20px;
+    background: var(--paper);
+  }
+  .add-habit-btn {
+    background: transparent;
+    border: 1.5px dashed var(--dot);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink-faint);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .add-habit-btn:hover { border-color: var(--amber); color: var(--amber-dark); }
+
+  /* summary row */
+  .tracker-summary {
+    display: flex; gap: 20px;
+    margin-top: 28px;
+  }
+  .summary-card {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 8px var(--shadow);
+  }
+  .summary-card .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .summary-card .value {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .summary-card .sub {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+  .summary-card.gold .value { color: var(--amber-dark); }
+
+  /* ═══════════════════════════════
+     DAILY JOURNAL
+  ═══════════════════════════════ */
+  .journal-body { padding: 32px 40px; }
+
+  .journal-layout { display: flex; gap: 24px; }
+
+  .journal-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+  }
+  .calendar-mini {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 8px var(--shadow);
+    margin-bottom: 16px;
+  }
+  .calendar-mini .cal-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    text-align: center;
+  }
+  .cal-day-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-faint);
+    padding: 2px 0 4px;
+  }
+  .cal-day {
+    font-size: 11px;
+    color: var(--ink-light);
+    padding: 3px 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .cal-day:hover { background: var(--amber-pale); }
+  .cal-day.today {
+    background: var(--amber);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 50%;
+  }
+  .cal-day.has-entry {
+    border-bottom: 2px solid var(--amber-light);
+  }
+
+  .prompt-picker {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 8px var(--shadow);
+  }
+  .prompt-picker .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .prompt-option {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 6px 0;
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+  }
+  .prompt-option:last-child { border-bottom: none; }
+  .prompt-option input[type=radio] { margin-top: 2px; accent-color: var(--amber); }
+  .prompt-option label {
+    font-size: 11px;
+    color: var(--ink-light);
+    cursor: pointer;
+    line-height: 1.4;
+  }
+
+  .journal-main { flex: 1; min-width: 0; }
+
+  .journal-page {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 2px 16px var(--shadow);
+    overflow: hidden;
+    min-height: 560px;
+    position: relative;
+  }
+
+  .journal-page-header {
+    padding: 24px 32px 20px;
+    border-bottom: 2px solid var(--amber-light);
+    background: var(--paper);
+    display: flex; align-items: flex-end; justify-content: space-between;
+  }
+  .journal-page-header .date-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .journal-page-header .prompt-display {
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-style: italic;
+    max-width: 280px;
+    text-align: right;
+  }
+
+  .journal-lined {
+    padding: 0;
+    position: relative;
+  }
+  .journal-line {
+    display: flex; align-items: stretch;
+    border-bottom: 1px solid var(--line);
+  }
+  .line-num {
+    width: 36px;
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--dot);
+    padding: 12px 6px 12px 12px;
+    text-align: right;
+    border-right: 1px solid var(--line);
+    user-select: none;
+  }
+  .line-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 10px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: transparent;
+    line-height: 1.5;
+    resize: none;
+    min-height: 42px;
+  }
+  .line-input::placeholder { color: var(--dot); }
+
+  .journal-footer {
+    padding: 20px 32px;
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .mood-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .mood-row .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .mood-btn {
+    font-size: 18px; padding: 4px; border: none; background: transparent;
+    cursor: pointer; border-radius: 4px; opacity: 0.5;
+    transition: all 0.12s;
+  }
+  .mood-btn:hover, .mood-btn.active { opacity: 1; transform: scale(1.15); }
+  .save-entry-btn {
+    padding: 8px 20px;
+    background: var(--amber);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: all 0.15s;
+  }
+  .save-entry-btn:hover { background: var(--amber-dark); transform: translateY(-1px); box-shadow: 0 3px 10px var(--shadow-deep); }
+
+  /* ═══════════════════════════════
+     ONE LINE PER DAY
+  ═══════════════════════════════ */
+  .oneline-body { padding: 32px 40px; }
+
+  .oneline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .oneline-month {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 8px var(--shadow);
+  }
+  .oneline-month-header {
+    padding: 16px 20px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .oneline-month-header .month-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .oneline-month-header .prompt-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    background: var(--amber-pale);
+    color: var(--amber-dark);
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .oneline-entry {
+    display: flex; align-items: center; gap: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .oneline-entry:last-child { border-bottom: none; }
+  .oneline-day {
+    width: 36px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    padding: 9px 0 9px 16px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--line);
+    user-select: none;
+  }
+  .oneline-entry.today-row .oneline-day {
+    color: var(--amber-dark);
+    font-weight: 500;
+  }
+  .oneline-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    background: transparent;
+    transition: background 0.12s;
+  }
+  .oneline-input:focus { background: var(--amber-pale); }
+  .oneline-entry.today-row { background: #fffdf8; }
+  .oneline-entry.today-row .oneline-input { font-style: italic; }
+
+  /* ═══════════════════════════════
+     DOT GRID (Notes)
+  ═══════════════════════════════ */
+  .notes-body { padding: 32px 40px; }
+  .notes-toolbar {
+    display: flex; gap: 8px; align-items: center;
+    margin-bottom: 20px;
+  }
+  .notes-toolbar button {
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink-light);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .notes-toolbar button:hover, .notes-toolbar button.active {
+    border-color: var(--amber);
+    color: var(--amber-dark);
+    background: var(--amber-pale);
+  }
+  .notes-toolbar .sep {
+    width: 1px; height: 20px; background: var(--line); margin: 0 4px;
+  }
+  .notes-input-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    margin-left: auto;
+  }
+
+  .dot-grid-canvas {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 2px 16px var(--shadow);
+    position: relative;
+    min-height: 640px;
+    overflow: hidden;
+  }
+  .dot-grid-bg {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, var(--dot) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: 20px 20px;
+  }
+
+  /* Faint split-grid helpers at halves/thirds */
+  .dot-grid-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 100% 50%, 50% 100%;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .dot-grid-textarea {
+    position: absolute; inset: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 24px; /* match dot grid */
+    resize: none;
+    width: 100%;
+    min-height: 640px;
+    z-index: 1;
+  }
+
+  .notes-index {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 8px var(--shadow);
+  }
+  .notes-index h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  .index-entry {
+    display: flex; gap: 12px; align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .index-entry:last-child { border-bottom: none; }
+  .index-pg {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--amber-dark);
+    width: 30px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .index-entry input {
+    flex: 1; border: none; outline: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink-light);
+    background: transparent;
+  }
+  .index-entry input::placeholder { color: var(--dot); }
+
+  /* ── Animations ── */
+  .page { animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .dot-check { animation: none; }
+  .dot-check.checked { animation: checkPop 0.2s cubic-bezier(0.4,0,0.2,1); }
+  @keyframes checkPop { 0% { transform: scale(0.7); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .oneline-grid { grid-template-columns: 1fr; }
+    .journal-layout { flex-direction: column; }
+    .journal-sidebar { width: 100%; }
+    .tracker-summary { flex-direction: column; }
+    nav { padding: 0 16px; }
+    .nav-tabs { display: none; }
+    .section-header, .tracker-body, .journal-body, .oneline-body, .notes-body { padding: 20px; }
+  }
+
+  /* mobile tab bar */
+  .mobile-tabs {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--cream);
+    border-top: 1px solid var(--line);
+    padding: 8px 16px 12px;
+    justify-content: space-around;
+  }
+  .mobile-tab {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    color: var(--ink-faint); font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .mobile-tab .icon { font-size: 16px; }
+  .mobile-tab.active { color: var(--amber-dark); }
+  @media (max-width: 768px) {
+    .mobile-tabs { display: flex; }
+    main { margin-bottom: 64px; }
+    .nav-date { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Clear<span>·</span>Journal</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('tracker')">Tracker</button>
+    <button class="nav-tab" onclick="showPage('journal')">Journal</button>
+    <button class="nav-tab" onclick="showPage('oneline')">One Line</button>
+    <button class="nav-tab" onclick="showPage('notes')">Notes</button>
+  </div>
+  <div class="nav-date" id="navDate"></div>
+</nav>
+
+<main>
+
+  <!-- ══════════════ HABIT TRACKER ══════════════ -->
+  <div class="page active" id="page-tracker">
+    <div class="section-header">
+      <h2>Habit Tracker</h2>
+      <p>Track your daily habits. Consistency is the currency of progress.</p>
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <span class="month-label" id="trackerMonthLabel"></span>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+    </div>
+    <div class="tracker-body">
+      <div class="habit-grid-wrapper">
+        <table class="habit-grid" id="habitTable">
+          <thead id="habitTableHead"></thead>
+          <tbody id="habitTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="tracker-summary" id="trackerSummary"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ DAILY JOURNAL ══════════════ -->
+  <div class="page" id="page-journal">
+    <div class="section-header">
+      <h2>Daily Journal</h2>
+      <p>Capture your thoughts. One entry at a time.</p>
+    </div>
+    <div class="journal-body">
+      <div class="journal-layout">
+        <div class="journal-sidebar">
+          <div class="calendar-mini">
+            <div class="cal-header" id="calMiniHeader"></div>
+            <div class="cal-grid" id="calMiniGrid"></div>
+          </div>
+          <div class="prompt-picker">
+            <div class="label">Prompt</div>
+            <div id="promptOptions"></div>
+          </div>
+        </div>
+
+        <div class="journal-main">
+          <div class="journal-page">
+            <div class="journal-page-header">
+              <div class="date-display" id="journalDateDisplay"></div>
+              <div class="prompt-display" id="journalPromptDisplay"></div>
+            </div>
+            <div class="journal-lined" id="journalLines"></div>
+            <div class="journal-footer">
+              <div class="mood-row">
+                <span class="label">Mood</span>
+                <button class="mood-btn" data-mood="😄" onclick="setMood(this)">😄</button>
+                <button class="mood-btn" data-mood="🙂" onclick="setMood(this)">🙂</button>
+                <button class="mood-btn" data-mood="😐" onclick="setMood(this)">😐</button>
+                <button class="mood-btn" data-mood="😔" onclick="setMood(this)">😔</button>
+                <button class="mood-btn" data-mood="😤" onclick="setMood(this)">😤</button>
+              </div>
+              <button class="save-entry-btn" onclick="saveEntry()">Save Entry</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ ONE LINE PER DAY ══════════════ -->
+  <div class="page" id="page-oneline">
+    <div class="section-header">
+      <h2>One Line Per Day</h2>
+      <p>A year of small moments. 31 days, one sentence each.</p>
+    </div>
+    <div class="oneline-body">
+      <div class="oneline-grid" id="onelineGrid"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ NOTES / DOT GRID ══════════════ -->
+  <div class="page" id="page-notes">
+    <div class="section-header">
+      <h2>Notes &amp; Ideas</h2>
+      <p>Your dot-grid canvas. Think, sketch, brainstorm.</p>
+    </div>
+    <div class="notes-body">
+      <div class="notes-toolbar">
+        <button class="active" onclick="setPage('A')">Page A</button>
+        <button onclick="setPage('B')">Page B</button>
+        <button onclick="setPage('C')">Page C</button>
+        <button onclick="setPage('D')">Page D</button>
+        <div class="sep"></div>
+        <button onclick="clearNotes()">Clear</button>
+        <span class="notes-input-label" id="notesCharCount"></span>
+      </div>
+      <div class="dot-grid-canvas">
+        <div class="dot-grid-bg"></div>
+        <textarea class="dot-grid-textarea" id="notesArea" placeholder="Start writing, sketching, or brainstorming…" oninput="saveNotes()"></textarea>
+      </div>
+      <div class="notes-index">
+        <h3>Index</h3>
+        <div id="indexEntries"></div>
+        <div style="padding-top:12px;">
+          <button onclick="addIndexEntry()" class="add-habit-btn">+ Add entry</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="mobile-tabs">
+  <button class="mobile-tab active" onclick="showPage('tracker')">
+    <span class="icon">☑</span>Tracker
+  </button>
+  <button class="mobile-tab" onclick="showPage('journal')">
+    <span class="icon">✏</span>Journal
+  </button>
+  <button class="mobile-tab" onclick="showPage('oneline')">
+    <span class="icon">≡</span>One Line
+  </button>
+  <button class="mobile-tab" onclick="showPage('notes')">
+    <span class="icon">⊡</span>Notes
+  </button>
+</div>
+
+<script>
+// ── State ──
+const today = new Date();
+let currentYear = today.getFullYear();
+let currentMonth = today.getMonth(); // 0-indexed
+let currentJournalDay = today.getDate();
+let currentMood = null;
+let currentNotePage = 'A';
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS_SHORT = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+const defaultHabits = [
+  'Morning routine',
+  'Exercise',
+  'Read 20 min',
+  'No phone before 8am',
+  'Gratitude',
+];
+
+let habits = JSON.parse(localStorage.getItem('chj_habits') || 'null') || defaultHabits.map(n => ({ name: n }));
+let checks = JSON.parse(localStorage.getItem('chj_checks') || '{}');
+let journalEntries = JSON.parse(localStorage.getItem('chj_journal') || '{}');
+let onelineEntries = JSON.parse(localStorage.getItem('chj_oneline') || '{}');
+let notesData = JSON.parse(localStorage.getItem('chj_notes') || '{}');
+let notesIndex = JSON.parse(localStorage.getItem('chj_notesindex') || '[]');
+let selectedPrompt = 0;
+
+const prompts = [
+  'What happened today?',
+  'What am I grateful for?',
+  'What is my most important task?',
+  'How did I sleep?',
+  'How do I feel today?',
+  'What did I learn?',
+  'What could I do better tomorrow?',
+];
+
+// ── Helpers ──
+function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+function dayKey(y, m, d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+function checkKey(habitIdx, dk) { return `h${habitIdx}_${dk}`; }
+function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+
+// ── Nav ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+
+  const tabs = [...document.querySelectorAll('.nav-tab')];
+  const tabMap = { tracker:0, journal:1, oneline:2, notes:3 };
+  if (tabs[tabMap[id]]) tabs[tabMap[id]].classList.add('active');
+
+  const mtabs = [...document.querySelectorAll('.mobile-tab')];
+  if (mtabs[tabMap[id]]) mtabs[tabMap[id]].classList.add('active');
+
+  if (id === 'journal') renderJournal();
+  if (id === 'oneline') renderOneLine();
+  if (id === 'notes') renderNotes();
+}
+
+// ── Date Display ──
+function updateNavDate() {
+  const opts = { weekday:'short', month:'long', day:'numeric', year:'numeric' };
+  document.getElementById('navDate').textContent = today.toLocaleDateString('en-US', opts).toUpperCase();
+}
+
+// ════════════════════════════════════
+// HABIT TRACKER
+// ════════════════════════════════════
+function changeMonth(delta) {
+  currentMonth += delta;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  renderTracker();
+}
+
+function renderTracker() {
+  const days = daysInMonth(currentYear, currentMonth);
+  document.getElementById('trackerMonthLabel').textContent =
+    `${MONTHS[currentMonth].toUpperCase()} ${currentYear}`;
+
+  // Header
+  const head = document.getElementById('habitTableHead');
+  let hRow = `<tr><th class="habit-name-col">HABIT</th>`;
+  for (let d = 1; d <= days; d++) {
+    const dk = dayKey(currentYear, currentMonth, d);
+    const isToday = (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear());
+    hRow += `<th style="${isToday ? 'color:var(--amber-dark);font-weight:600;' : ''}">${d}</th>`;
+  }
+  hRow += `<th style="min-width:70px">STREAK</th></tr>`;
+  head.innerHTML = hRow;
+
+  // Body
+  const body = document.getElementById('habitTableBody');
+  body.innerHTML = '';
+
+  habits.forEach((habit, hi) => {
+    const tr = document.createElement('tr');
+    let streak = 0, tempStreak = 0;
+
+    // Calculate streak (count backwards from today)
+    for (let d = days; d >= 1; d--) {
+      const dk = dayKey(currentYear, currentMonth, d);
+      const ck = checkKey(hi, dk);
+      if (checks[ck]) tempStreak++;
+      else tempStreak = 0;
+    }
+    // Simple streak: consecutive from today backward
+    for (let d = (currentMonth === today.getMonth() && currentYear === today.getFullYear() ? today.getDate() : days); d >= 1; d--) {
+      const dk = dayKey(currentYear, currentMonth, d);
+      if (checks[checkKey(hi, dk)]) streak++;
+      else break;
+    }
+
+    let row = `<td class="habit-name"><input value="${habit.name}" placeholder="Add habit…" onchange="renameHabit(${hi}, this.value)"></td>`;
+    for (let d = 1; d <= days; d++) {
+      const dk = dayKey(currentYear, currentMonth, d);
+      const ck = checkKey(hi, dk);
+      const checked = checks[ck];
+      const isToday = (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear());
+      row += `<td class="day-cell${isToday ? ' today-cell' : ''}">
+        <div class="dot-check ${checked ? 'checked' : ''}" onclick="toggleCheck(${hi}, '${dk}', this)" style="${isToday ? 'border-color:var(--amber-light);' : ''}"></div>
+      </td>`;
+    }
+    const emoji = streak >= 7 ? '🔥' : streak >= 3 ? '✨' : '';
+    row += `<td class="streak-cell"><span class="streak-badge">${emoji} ${streak}d</span></td>`;
+    tr.innerHTML = row;
+    body.appendChild(tr);
+  });
+
+  // Add habit row
+  const addRow = document.createElement('tr');
+  addRow.className = 'add-habit-row';
+  addRow.innerHTML = `<td colspan="${days + 2}">
+    <button class="add-habit-btn" onclick="addHabit()">+ Add habit</button>
+  </td>`;
+  body.appendChild(addRow);
+
+  renderTrackerSummary(days);
+}
+
+function toggleCheck(hi, dk, el) {
+  const ck = checkKey(hi, dk);
+  checks[ck] = !checks[ck];
+  if (checks[ck]) el.classList.add('checked');
+  else el.classList.remove('checked');
+  save('chj_checks', checks);
+  renderTrackerSummary(daysInMonth(currentYear, currentMonth));
+}
+
+function renameHabit(hi, val) {
+  habits[hi].name = val;
+  save('chj_habits', habits);
+}
+
+function addHabit() {
+  habits.push({ name: '' });
+  save('chj_habits', habits);
+  renderTracker();
+  // focus new input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('#habitTableBody .habit-name input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }, 50);
+}
+
+function renderTrackerSummary(days) {
+  const totalCells = habits.length * days;
+  let completed = 0;
+  habits.forEach((h, hi) => {
+    for (let d = 1; d <= days; d++) {
+      if (checks[checkKey(hi, dayKey(currentYear, currentMonth, d))]) completed++;
+    }
+  });
+  const pct = totalCells ? Math.round(completed / totalCells * 100) : 0;
+
+  // Best streak across all habits
+  let bestStreak = 0;
+  habits.forEach((h, hi) => {
+    let s = 0, best = 0;
+    for (let d = 1; d <= days; d++) {
+      if (checks[checkKey(hi, dayKey(currentYear, currentMonth, d))]) { s++; best = Math.max(best, s); }
+      else s = 0;
+    }
+    bestStreak = Math.max(bestStreak, best);
+  });
+
+  const todayCount = habits.filter((h, hi) =>
+    checks[checkKey(hi, dayKey(today.getFullYear(), today.getMonth(), today.getDate()))]
+  ).length;
+
+  document.getElementById('trackerSummary').innerHTML = `
+    <div class="summary-card gold">
+      <div class="label">Completion Rate</div>
+      <div class="value">${pct}%</div>
+      <div class="sub">${completed} of ${totalCells} possible checks</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Today's Habits</div>
+      <div class="value">${todayCount} / ${habits.length}</div>
+      <div class="sub">${habits.length - todayCount} remaining today</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Best Streak</div>
+      <div class="value">${bestStreak}d</div>
+      <div class="sub">consecutive days this month</div>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════
+// DAILY JOURNAL
+// ════════════════════════════════════
+function renderJournal() {
+  const d = today;
+  const opts = { weekday:'long', month:'long', day:'numeric', year:'numeric' };
+  document.getElementById('journalDateDisplay').textContent = d.toLocaleDateString('en-US', opts);
+  document.getElementById('journalPromptDisplay').textContent = `"${prompts[selectedPrompt]}"`;
+
+  // Prompt picker
+  const po = document.getElementById('promptOptions');
+  po.innerHTML = prompts.map((p, i) => `
+    <div class="prompt-option">
+      <input type="radio" name="prompt" id="p${i}" ${i === selectedPrompt ? 'checked' : ''} onchange="selectPrompt(${i})">
+      <label for="p${i}">${p}</label>
+    </div>
+  `).join('');
+
+  // Mini calendar
+  document.getElementById('calMiniHeader').textContent = MONTHS[today.getMonth()];
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
+  const days = daysInMonth(today.getFullYear(), today.getMonth());
+  let cal = DAYS_SHORT.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+  for (let i = 0; i < firstDay; i++) cal += `<div></div>`;
+  for (let d = 1; d <= days; d++) {
+    const dk = dayKey(today.getFullYear(), today.getMonth(), d);
+    const hasEntry = !!journalEntries[dk];
+    const isToday = d === today.getDate();
+    cal += `<div class="cal-day ${isToday ? 'today' : ''} ${hasEntry && !isToday ? 'has-entry' : ''}" onclick="selectJournalDay(${d})">${d}</div>`;
+  }
+  document.getElementById('calMiniGrid').innerHTML = cal;
+
+  // Lines
+  const dk = dayKey(today.getFullYear(), today.getMonth(), currentJournalDay);
+  const entry = journalEntries[dk] || { lines: Array(12).fill(''), mood: null };
+  const linesEl = document.getElementById('journalLines');
+  linesEl.innerHTML = entry.lines.map((line, i) => `
+    <div class="journal-line">
+      <div class="line-num">${i + 1}</div>
+      <textarea class="line-input" rows="1" placeholder="${i === 0 ? prompts[selectedPrompt] : ''}"
+        oninput="autoResize(this); saveJournalLine(${i}, this.value)">${line}</textarea>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.line-input').forEach(autoResize);
+  currentMood = entry.mood;
+  document.querySelectorAll('.mood-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mood === currentMood);
+  });
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function selectPrompt(i) {
+  selectedPrompt = i;
+  document.getElementById('journalPromptDisplay').textContent = `"${prompts[i]}"`;
+  const firstLine = document.querySelector('.line-input');
+  if (firstLine) firstLine.placeholder = prompts[i];
+}
+
+function saveJournalLine(lineIdx, val) {
+  const dk = dayKey(today.getFullYear(), today.getMonth(), currentJournalDay);
+  if (!journalEntries[dk]) journalEntries[dk] = { lines: Array(12).fill(''), mood: null };
+  journalEntries[dk].lines[lineIdx] = val;
+  save('chj_journal', journalEntries);
+}
+
+function setMood(btn) {
+  currentMood = btn.dataset.mood;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const dk = dayKey(today.getFullYear(), today.getMonth(), currentJournalDay);
+  if (!journalEntries[dk]) journalEntries[dk] = { lines: Array(12).fill(''), mood: null };
+  journalEntries[dk].mood = currentMood;
+  save('chj_journal', journalEntries);
+}
+
+function saveEntry() {
+  const btn = document.querySelector('.save-entry-btn');
+  btn.textContent = '✓ Saved';
+  btn.style.background = 'var(--sage)';
+  setTimeout(() => { btn.textContent = 'Save Entry'; btn.style.background = ''; }, 1600);
+}
+
+function selectJournalDay(d) {
+  currentJournalDay = d;
+  renderJournal();
+}
+
+// ════════════════════════════════════
+// ONE LINE PER DAY
+// ════════════════════════════════════
+function renderOneLine() {
+  const grid = document.getElementById('onelineGrid');
+  grid.innerHTML = '';
+  MONTHS.forEach((month, mi) => {
+    const days = daysInMonth(today.getFullYear(), mi);
+    let entries = '';
+    for (let d = 1; d <= days; d++) {
+      const dk = dayKey(today.getFullYear(), mi, d);
+      const val = onelineEntries[dk] || '';
+      const isToday = (d === today.getDate() && mi === today.getMonth());
+      entries += `
+        <div class="oneline-entry ${isToday ? 'today-row' : ''}">
+          <div class="oneline-day">${d}</div>
+          <input class="oneline-input" value="${val.replace(/"/g, '&quot;')}"
+            placeholder="${isToday ? 'Write today\u0027s line\u2026' : '\u2014'}"
+            oninput="saveOneline('${dk}', this.value)">
+        </div>`;
+    }
+    grid.innerHTML += `
+      <div class="oneline-month">
+        <div class="oneline-month-header">
+          <span class="month-title">${month}</span>
+          <span class="prompt-tag">${today.getFullYear()}</span>
+        </div>
+        ${entries}
+      </div>`;
+  });
+}
+
+function saveOneline(dk, val) {
+  onelineEntries[dk] = val;
+  save('chj_oneline', onelineEntries);
+}
+
+// ════════════════════════════════════
+// NOTES / DOT GRID
+// ════════════════════════════════════
+function renderNotes() {
+  const area = document.getElementById('notesArea');
+  area.value = notesData[currentNotePage] || '';
+  updateNotesCount();
+  renderNotesIndex();
+}
+
+function setPage(p) {
+  // save current
+  notesData[currentNotePage] = document.getElementById('notesArea').value;
+  save('chj_notes', notesData);
+  currentNotePage = p;
+  document.querySelectorAll('.notes-toolbar button').forEach((b, i) => {
+    b.classList.toggle('active', ['A','B','C','D'][i] === p);
+  });
+  renderNotes();
+}
+
+function saveNotes() {
+  notesData[currentNotePage] = document.getElementById('notesArea').value;
+  save('chj_notes', notesData);
+  updateNotesCount();
+}
+
+function clearNotes() {
+  if (!confirm('Clear this page?')) return;
+  document.getElementById('notesArea').value = '';
+  notesData[currentNotePage] = '';
+  save('chj_notes', notesData);
+  updateNotesCount();
+}
+
+function updateNotesCount() {
+  const len = (document.getElementById('notesArea').value || '').length;
+  document.getElementById('notesCharCount').textContent = `${len} chars`;
+}
+
+function renderNotesIndex() {
+  const el = document.getElementById('indexEntries');
+  el.innerHTML = notesIndex.map((entry, i) => `
+    <div class="index-entry">
+      <span class="index-pg">${entry.page}</span>
+      <input value="${entry.label}" placeholder="Entry title…" oninput="updateIndex(${i}, 'label', this.value)">
+      <input style="width:50px;font-family:var(--font-mono,monospace);font-size:11px;color:var(--ink-faint);text-align:right;"
+        value="${entry.pg || ''}" placeholder="pg" oninput="updateIndex(${i}, 'pg', this.value)">
+    </div>
+  `).join('');
+  if (!notesIndex.length) el.innerHTML = `<div style="padding:8px 0;font-size:12px;color:var(--dot);">No index entries yet.</div>`;
+}
+
+function addIndexEntry() {
+  notesIndex.push({ page: currentNotePage, label: '', pg: '' });
+  save('chj_notesindex', notesIndex);
+  renderNotesIndex();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('#indexEntries .index-entry input');
+    if (inputs.length) inputs[inputs.length - 2].focus();
+  }, 50);
+}
+
+function updateIndex(i, field, val) {
+  notesIndex[i][field] = val;
+  save('chj_notesindex', notesIndex);
+}
+
+// ── Init ──
+updateNavDate();
+renderTracker();
+renderJournal();
+</script>
+</body>
+</html>
