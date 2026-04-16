@@ -194,6 +194,22 @@
     outline: none;
   }
   .habit-grid td.habit-name input::placeholder { color: var(--dot); font-style: italic; }
+  .habit-grid td.habit-name { display: flex; align-items: center; justify-content: space-between; }
+  .delete-habit-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: var(--rust);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: opacity 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+  .habit-grid tr:hover .delete-habit-btn { opacity: 1; }
+  .delete-habit-btn:hover { background: #fdecea; }
 
   .day-cell {
     text-align: center;
@@ -983,7 +999,7 @@ function renderTracker() {
       else break;
     }
 
-    let row = `<td class="habit-name"><input value="${habit.name}" placeholder="Add habit…" onchange="renameHabit(${hi}, this.value)"></td>`;
+    let row = `<td class="habit-name"><input value="${habit.name}" placeholder="Add habit…" onchange="renameHabit(${hi}, this.value)"><button class="delete-habit-btn" onclick="deleteHabit(${hi})" title="Delete habit">×</button></td>`;
     for (let d = 1; d <= days; d++) {
       const dk = dayKey(currentYear, currentMonth, d);
       const ck = checkKey(hi, dk);
@@ -1017,6 +1033,13 @@ function toggleCheck(hi, dk, el) {
   else el.classList.remove('checked');
   save('chj_checks', checks);
   renderTrackerSummary(daysInMonth(currentYear, currentMonth));
+}
+
+function deleteHabit(hi) {
+  if (!confirm('Delete "' + habits[hi].name + '"? This will remove all its check data.')) return;
+  habits.splice(hi, 1);
+  save('chj_habits', habits);
+  renderTracker();
 }
 
 function renameHabit(hi, val) {
