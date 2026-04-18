@@ -877,6 +877,62 @@
   .dot-check.checked { animation: checkPop 0.2s cubic-bezier(0.4,0,0.2,1); }
   @keyframes checkPop { 0% { transform: scale(0.7); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
+  /* ── GitHub Token Modal ── */
+  .token-modal {
+    display: none;
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(18,28,50,0.7);
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .token-modal-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    width: 320px;
+    max-width: 90vw;
+    box-shadow: 0 8px 40px rgba(18,28,50,0.25);
+  }
+  .token-modal-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--slate-deep);
+    margin-bottom: 6px;
+  }
+  .token-modal-box p {
+    font-size: 12px;
+    color: var(--slate-light);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .token-modal-box input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    outline: none;
+    margin-bottom: 14px;
+    box-sizing: border-box;
+  }
+  .token-modal-box input:focus { border-color: var(--slate); }
+  .token-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .token-modal-actions button {
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .token-cancel { background: var(--paper); color: var(--ink-light); }
+  .token-cancel:hover { background: var(--line); }
+  .token-save { background: var(--slate); color: #fff; font-weight: 500; }
+  .token-save:hover { background: var(--slate-deep); }
+
   /* ── Responsive ── */
   @media (max-width: 768px) {
     .oneline-grid { grid-template-columns: 1fr; }
@@ -936,7 +992,12 @@
     <button class="nav-tab" onclick="showPage('oneline')">One Line</button>
     <button class="nav-tab" onclick="showPage('notes')">Notes</button>
   </div>
-  <div class="nav-date" id="navDate"></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span id="syncStatusLabel" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;color:var(--slate-light);"></span>
+    <div id="syncStatusDot" onclick="showTokenModal()" title="Sync status / Set token"
+      style="width:8px;height:8px;border-radius:50%;background:var(--slate-light);cursor:pointer;flex-shrink:0;transition:background 0.3s;"></div>
+    <div class="nav-date" id="navDate"></div>
+  </div>
 </nav>
 
 <main>
@@ -1060,6 +1121,19 @@
 
 </main>
 
+<!-- GitHub Token Modal -->
+<div class="token-modal" id="tokenModal">
+  <div class="token-modal-box">
+    <h3>GitHub Sync</h3>
+    <p>Paste your GitHub personal access token to enable cross-device sync. It's stored only on this device.</p>
+    <input type="password" id="tokenInput" placeholder="ghp_..." autocomplete="off" spellcheck="false">
+    <div class="token-modal-actions">
+      <button class="token-cancel" onclick="hideTokenModal()">Cancel</button>
+      <button class="token-save" onclick="saveToken()">Save & Sync</button>
+    </div>
+  </div>
+</div>
+
 <div class="mobile-tabs">
   <button class="mobile-tab active" onclick="showPage('tracker')">
     <span class="icon">☑</span>Tracker
@@ -1101,7 +1175,8 @@ let journalEntries = JSON.parse(localStorage.getItem('chj_journal') || '{}');
 let onelineEntries = JSON.parse(localStorage.getItem('chj_oneline') || '{}');
 let notesData = JSON.parse(localStorage.getItem('chj_notes') || '{}');
 let notesIndex = JSON.parse(localStorage.getItem('chj_notesindex') || '[]');
-let selectedPrompt = 0;
+let journalPrompts = JSON.parse(localStorage.getItem('chj_prompts') || '{}');
+function getPromptForDay(dk) { return journalPrompts[dk] !== undefined ? journalPrompts[dk] : 0; }
 
 const prompts = [
   'What happened today?',
@@ -1117,7 +1192,165 @@ const prompts = [
 function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 function dayKey(y, m, d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
 function checkKey(habitIdx, dk) { return `h${habitIdx}_${dk}`; }
-function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function save(k, v) {
+  localStorage.setItem(k, JSON.stringify(v));
+  if (typeof schedulePush === 'function') schedulePush();
+}
+
+// ════════════════════════════════════
+// GITHUB SYNC
+// ════════════════════════════════════
+const GITHUB_OWNER = 'sela5129';
+const GITHUB_REPO  = 'habit-track';
+const GITHUB_FILE  = 'data.json';
+const GITHUB_BRANCH = 'main';
+
+function getToken() { return localStorage.getItem('chj_gh_token') || ''; }
+
+function allData() {
+  return {
+    habits,
+    checks,
+    journalEntries,
+    onelineEntries,
+    notesData,
+    notesIndex,
+    journalPrompts,
+  };
+}
+
+function loadAllData(d) {
+  if (d.habits)         { habits = d.habits; save('chj_habits', habits); }
+  if (d.checks)         { checks = d.checks; save('chj_checks', checks); }
+  if (d.journalEntries) { journalEntries = d.journalEntries; save('chj_journal', journalEntries); }
+  if (d.onelineEntries) { onelineEntries = d.onelineEntries; save('chj_oneline', onelineEntries); }
+  if (d.notesData)      { notesData = d.notesData; save('chj_notes', notesData); }
+  if (d.notesIndex)     { notesIndex = d.notesIndex; save('chj_notesindex', notesIndex); }
+  if (d.journalPrompts) { journalPrompts = d.journalPrompts; save('chj_prompts', journalPrompts); }
+}
+
+let syncSha = null;
+let syncDebounce = null;
+let syncStatus = 'idle'; // idle | syncing | saved | error
+
+function setSyncStatus(s, msg) {
+  syncStatus = s;
+  const el = document.getElementById('syncStatusDot');
+  const label = document.getElementById('syncStatusLabel');
+  if (!el) return;
+  const map = {
+    idle:    { color: 'var(--slate-light)', text: '' },
+    syncing: { color: 'var(--gold)',        text: 'Syncing…' },
+    saved:   { color: '#5BA87E',            text: 'Saved' },
+    error:   { color: '#C4704A',            text: msg || 'Sync error' },
+    offline: { color: 'var(--dot)',         text: 'No token' },
+  };
+  const m = map[s] || map.idle;
+  el.style.background = m.color;
+  if (label) label.textContent = m.text;
+}
+
+async function pushToGitHub() {
+  const token = getToken();
+  if (!token) { setSyncStatus('offline'); return; }
+  setSyncStatus('syncing');
+  try {
+    const body = JSON.stringify(allData(), null, 2);
+    const encoded = btoa(unescape(encodeURIComponent(body)));
+    // Get current SHA
+    const getRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
+      { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' } }
+    );
+    let sha = syncSha;
+    if (getRes.ok) {
+      const getJson = await getRes.json();
+      sha = getJson.sha;
+      syncSha = sha;
+    }
+    const putRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
+      {
+        method: 'PUT',
+        headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'Journal sync ' + new Date().toISOString(),
+          content: encoded,
+          branch: GITHUB_BRANCH,
+          ...(sha ? { sha } : {}),
+        }),
+      }
+    );
+    if (putRes.ok) {
+      const putJson = await putRes.json();
+      syncSha = putJson.content.sha;
+      setSyncStatus('saved');
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    } else {
+      const err = await putRes.json();
+      console.error('GitHub push error:', err);
+      setSyncStatus('error', 'Sync failed');
+    }
+  } catch(e) {
+    console.error('GitHub sync error:', e);
+    setSyncStatus('error', 'Sync failed');
+  }
+}
+
+async function pullFromGitHub() {
+  const token = getToken();
+  if (!token) { setSyncStatus('offline'); return null; }
+  setSyncStatus('syncing');
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
+      { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' } }
+    );
+    if (res.status === 404) { setSyncStatus('idle'); return null; } // first time, no file yet
+    if (!res.ok) { setSyncStatus('error', 'Pull failed'); return null; }
+    const json = await res.json();
+    syncSha = json.sha;
+    const decoded = decodeURIComponent(escape(atob(json.content.replace(/\n/g,''))));
+    const data = JSON.parse(decoded);
+    setSyncStatus('saved');
+    setTimeout(() => setSyncStatus('idle'), 2000);
+    return data;
+  } catch(e) {
+    console.error('GitHub pull error:', e);
+    setSyncStatus('error', 'Pull failed');
+    return null;
+  }
+}
+
+function schedulePush() {
+  clearTimeout(syncDebounce);
+  syncDebounce = setTimeout(pushToGitHub, 1500);
+}
+
+function showTokenModal() {
+  document.getElementById('tokenModal').style.display = 'flex';
+}
+function hideTokenModal() {
+  document.getElementById('tokenModal').style.display = 'none';
+}
+function saveToken() {
+  const val = document.getElementById('tokenInput').value.trim();
+  if (!val) return;
+  localStorage.setItem('chj_gh_token', val);
+  hideTokenModal();
+  initSync();
+}
+
+async function initSync() {
+  const token = getToken();
+  if (!token) { setSyncStatus('offline'); return; }
+  const data = await pullFromGitHub();
+  if (data) {
+    loadAllData(data);
+    renderTracker();
+    renderJournal();
+  }
+}
 
 // ── Nav ──
 function showPage(id) {
@@ -1356,6 +1589,8 @@ function renderJournal() {
   // Build a Date object for the currently selected journal day
   const selectedDate = new Date(today.getFullYear(), today.getMonth(), currentJournalDay);
   const isSelectedToday = currentJournalDay === today.getDate();
+  const currentDk = dayKey(today.getFullYear(), today.getMonth(), currentJournalDay);
+  const selectedPrompt = getPromptForDay(currentDk);
 
   const opts = { weekday:'long', month:'long', day:'numeric', year:'numeric' };
   document.getElementById('journalDateDisplay').textContent = selectedDate.toLocaleDateString('en-US', opts);
@@ -1410,7 +1645,9 @@ function autoResize(el) {
 }
 
 function selectPrompt(i) {
-  selectedPrompt = i;
+  const dk = dayKey(today.getFullYear(), today.getMonth(), currentJournalDay);
+  journalPrompts[dk] = i;
+  save('chj_prompts', journalPrompts);
   document.getElementById('journalPromptDisplay').textContent = `"${prompts[i]}"`;
   const firstLine = document.querySelector('.line-input');
   if (firstLine) firstLine.placeholder = prompts[i];
@@ -1568,6 +1805,15 @@ function updateIndex(i, field, val) {
 updateNavDate();
 renderTracker();
 renderJournal();
+// Pre-fill token if already stored, then sync on load
+setTimeout(() => {
+  const stored = localStorage.getItem('chj_gh_token');
+  if (stored) {
+    initSync();
+  } else {
+    setSyncStatus('offline');
+  }
+}, 300);
 </script>
 </body>
 </html>
