@@ -869,6 +869,60 @@
     .delete-habit-btn { opacity: 0.4; }
   }
 
+  /* ── Drawing Canvas ── */
+  .draw-toolbar {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .draw-tool-group {
+    display: flex; align-items: center; gap: 6px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 5px 8px;
+  }
+  .draw-tool {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--ink-light);
+    transition: all 0.12s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .draw-tool.active { background: var(--slate-pale); color: var(--slate); }
+  .draw-tool:hover:not(.active) { background: var(--paper); }
+  .draw-size {
+    border-radius: 50%;
+    border: 2px solid var(--slate-light);
+    background: var(--slate-light);
+    cursor: pointer;
+    display: block;
+    transition: all 0.12s;
+    padding: 0;
+  }
+  .draw-size.active { border-color: var(--slate); background: var(--slate); }
+  .draw-colors { gap: 5px !important; }
+  .draw-color {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.12s;
+  }
+  .draw-color.active { border-color: var(--ink); transform: scale(1.2); }
+  .draw-canvas-wrap { position: relative; touch-action: none; }
+  #drawCanvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    cursor: crosshair;
+    z-index: 2;
+    touch-action: none;
+  }
+
   /* ── Animations ── */
   .page { animation: fadeIn 0.25s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -1093,22 +1147,54 @@
   <div class="page" id="page-notes">
     <div class="section-header">
       <h2>Notes &amp; Ideas</h2>
-      <p>Your dot-grid canvas. Think, sketch, brainstorm.</p>
+      <p>A &amp; B: typed notes. C &amp; D: freehand drawing canvas.</p>
     </div>
     <div class="notes-body">
       <div class="notes-toolbar">
         <button class="active" onclick="setPage('A')">Page A</button>
         <button onclick="setPage('B')">Page B</button>
-        <button onclick="setPage('C')">Page C</button>
-        <button onclick="setPage('D')">Page D</button>
+        <button onclick="setPage('C')">✏ Page C</button>
+        <button onclick="setPage('D')">✏ Page D</button>
         <div class="sep"></div>
         <button onclick="clearNotes()">Clear</button>
         <span class="notes-input-label" id="notesCharCount"></span>
       </div>
-      <div class="dot-grid-canvas">
-        <div class="dot-grid-bg"></div>
-        <textarea class="dot-grid-textarea" id="notesArea" placeholder="Start writing, sketching, or brainstorming…" oninput="saveNotes()"></textarea>
+
+      <!-- Text pages A & B -->
+      <div id="notesTextArea">
+        <div class="dot-grid-canvas">
+          <div class="dot-grid-bg"></div>
+          <textarea class="dot-grid-textarea" id="notesArea" placeholder="Start writing, sketching, or brainstorming…" oninput="saveNotes()"></textarea>
+        </div>
       </div>
+
+      <!-- Drawing canvas pages C & D -->
+      <div id="notesDrawArea" style="display:none;">
+        <div class="draw-toolbar">
+          <div class="draw-tool-group">
+            <button class="draw-tool active" id="toolPen" onclick="setTool('pen')" title="Pen">✒</button>
+            <button class="draw-tool" id="toolEraser" onclick="setTool('eraser')" title="Eraser">◻</button>
+          </div>
+          <div class="draw-tool-group">
+            <button class="draw-size" onclick="setSize(2)" style="width:18px;height:18px;" title="Fine"></button>
+            <button class="draw-size" onclick="setSize(4)" style="width:22px;height:22px;" title="Medium"></button>
+            <button class="draw-size active" onclick="setSize(6)" style="width:28px;height:28px;" title="Thick"></button>
+          </div>
+          <div class="draw-tool-group draw-colors">
+            <button class="draw-color active" data-color="#18202E" style="background:#18202E;" onclick="setColor(this,'#18202E')"></button>
+            <button class="draw-color" data-color="#2D3E5C" style="background:#2D3E5C;" onclick="setColor(this,'#2D3E5C')"></button>
+            <button class="draw-color" data-color="#C9A84C" style="background:#C9A84C;" onclick="setColor(this,'#C9A84C')"></button>
+            <button class="draw-color" data-color="#C4704A" style="background:#C4704A;" onclick="setColor(this,'#C4704A')"></button>
+            <button class="draw-color" data-color="#5B8FA8" style="background:#5B8FA8;" onclick="setColor(this,'#5B8FA8')"></button>
+            <button class="draw-color" data-color="#7A9E7E" style="background:#7A9E7E;" onclick="setColor(this,'#7A9E7E')"></button>
+          </div>
+        </div>
+        <div class="dot-grid-canvas draw-canvas-wrap">
+          <div class="dot-grid-bg"></div>
+          <canvas id="drawCanvas"></canvas>
+        </div>
+      </div>
+
       <div class="notes-index">
         <h3>Index</h3>
         <div id="indexEntries"></div>
@@ -1734,23 +1820,47 @@ function saveOneline(dk, val) {
 }
 
 // ════════════════════════════════════
-// NOTES / DOT GRID
+// NOTES / DOT GRID + DRAWING
 // ════════════════════════════════════
+let drawTool = 'pen';
+let drawColor = '#18202E';
+let drawSize = 6;
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let drawDebounce = null;
+let canvasReady = false;
+
+function isDrawPage(p) { return p === 'C' || p === 'D'; }
+
 function renderNotes() {
-  const area = document.getElementById('notesArea');
-  area.value = notesData[currentNotePage] || '';
-  updateNotesCount();
+  if (isDrawPage(currentNotePage)) {
+    document.getElementById('notesTextArea').style.display = 'none';
+    document.getElementById('notesDrawArea').style.display = 'block';
+    document.getElementById('notesCharCount').textContent = '';
+    setTimeout(() => initCanvas(), 30);
+  } else {
+    document.getElementById('notesTextArea').style.display = 'block';
+    document.getElementById('notesDrawArea').style.display = 'none';
+    const area = document.getElementById('notesArea');
+    area.value = notesData[currentNotePage] || '';
+    updateNotesCount();
+  }
   renderNotesIndex();
 }
 
 function setPage(p) {
-  // save current
-  notesData[currentNotePage] = document.getElementById('notesArea').value;
-  save('chj_notes', notesData);
+  // Save current page before switching
+  if (isDrawPage(currentNotePage)) {
+    saveCanvasToData();
+  } else {
+    notesData[currentNotePage] = document.getElementById('notesArea').value;
+    save('chj_notes', notesData);
+  }
   currentNotePage = p;
   document.querySelectorAll('.notes-toolbar button').forEach((b, i) => {
     b.classList.toggle('active', ['A','B','C','D'][i] === p);
   });
+  canvasReady = false;
   renderNotes();
 }
 
@@ -1762,15 +1872,143 @@ function saveNotes() {
 
 function clearNotes() {
   if (!confirm('Clear this page?')) return;
-  document.getElementById('notesArea').value = '';
-  notesData[currentNotePage] = '';
-  save('chj_notes', notesData);
-  updateNotesCount();
+  if (isDrawPage(currentNotePage)) {
+    const canvas = document.getElementById('drawCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    notesData[currentNotePage] = '';
+    save('chj_notes', notesData);
+  } else {
+    document.getElementById('notesArea').value = '';
+    notesData[currentNotePage] = '';
+    save('chj_notes', notesData);
+    updateNotesCount();
+  }
 }
 
 function updateNotesCount() {
   const len = (document.getElementById('notesArea').value || '').length;
   document.getElementById('notesCharCount').textContent = `${len} chars`;
+}
+
+// ── Drawing tools ──
+function setTool(t) {
+  drawTool = t;
+  document.getElementById('toolPen').classList.toggle('active', t === 'pen');
+  document.getElementById('toolEraser').classList.toggle('active', t === 'eraser');
+  const canvas = document.getElementById('drawCanvas');
+  canvas.style.cursor = t === 'eraser' ? 'cell' : 'crosshair';
+}
+
+function setColor(btn, c) {
+  drawColor = c;
+  document.querySelectorAll('.draw-color').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (drawTool === 'eraser') setTool('pen');
+}
+
+function setSize(s) {
+  drawSize = s;
+  document.querySelectorAll('.draw-size').forEach((b, i) => {
+    b.classList.toggle('active', [2,4,6][i] === s);
+  });
+}
+
+function initCanvas() {
+  const canvas = document.getElementById('drawCanvas');
+  const wrap = canvas.parentElement;
+  // Size canvas to match wrapper
+  const w = wrap.offsetWidth;
+  const h = wrap.offsetHeight || 640;
+
+  if (!canvasReady || canvas.width !== w) {
+    canvas.width = w;
+    canvas.height = h;
+    canvasReady = true;
+    // Load saved drawing
+    const saved = notesData[currentNotePage];
+    if (saved && saved.startsWith('data:')) {
+      const img = new Image();
+      img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
+      img.src = saved;
+    }
+  }
+
+  // Attach events (remove old ones first)
+  canvas.onpointerdown = startDraw;
+  canvas.onpointermove = draw;
+  canvas.onpointerup = endDraw;
+  canvas.onpointercancel = endDraw;
+  canvas.onpointerleave = endDraw;
+}
+
+function getPos(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / r.width;
+  const scaleY = canvas.height / r.height;
+  return [
+    (e.clientX - r.left) * scaleX,
+    (e.clientY - r.top) * scaleY
+  ];
+}
+
+function startDraw(e) {
+  e.preventDefault();
+  isDrawing = true;
+  const canvas = document.getElementById('drawCanvas');
+  canvas.setPointerCapture(e.pointerId);
+  [lastX, lastY] = getPos(e, canvas);
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, (drawTool === 'eraser' ? drawSize * 4 : drawSize) / 2, 0, Math.PI * 2);
+  if (drawTool === 'eraser') {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0,0,0,1)';
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = drawColor;
+  }
+  ctx.fill();
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  e.preventDefault();
+  const canvas = document.getElementById('drawCanvas');
+  const ctx = canvas.getContext('2d');
+  const [x, y] = getPos(e, canvas);
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  if (drawTool === 'eraser') {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+    ctx.lineWidth = drawSize * 8;
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = drawColor;
+    ctx.lineWidth = drawSize;
+  }
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  [lastX, lastY] = [x, y];
+}
+
+function endDraw(e) {
+  if (!isDrawing) return;
+  isDrawing = false;
+  saveCanvasToData();
+}
+
+function saveCanvasToData() {
+  const canvas = document.getElementById('drawCanvas');
+  if (!canvas || !canvasReady) return;
+  clearTimeout(drawDebounce);
+  drawDebounce = setTimeout(() => {
+    notesData[currentNotePage] = canvas.toDataURL('image/png');
+    save('chj_notes', notesData);
+  }, 400);
 }
 
 function renderNotesIndex() {
