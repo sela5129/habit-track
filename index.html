@@ -637,15 +637,29 @@
     color: var(--ink);
     background: transparent;
     transition: background 0.12s;
-    /* allow horizontal scroll to read long entries */
+    /* scrollable single line */
     overflow-x: auto;
     white-space: nowrap;
     min-width: 0;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* hide scrollbar Firefox */
+    scrollbar-width: none;
+    cursor: text;
+    /* prevent newlines */
+    -webkit-user-select: text;
+    user-select: text;
   }
-  .oneline-input::-webkit-scrollbar { display: none; } /* hide scrollbar Chrome/Safari */
-  .oneline-input:focus { background: var(--slate-pale); }
+  .oneline-input::-webkit-scrollbar { display: none; }
+  .oneline-input:focus { background: var(--slate-pale); outline: none; }
+  .oneline-input:empty::before {
+    content: attr(data-placeholder);
+    color: var(--dot);
+    pointer-events: none;
+  }
+  .oneline-entry.today-row .oneline-input:empty::before {
+    color: var(--slate-mid);
+    font-style: italic;
+    opacity: 0.8;
+  }
   /* fade edge hint that there's more text */
   .oneline-entry {
     position: relative;
@@ -1429,12 +1443,17 @@ function renderOneLine() {
       const dk = dayKey(today.getFullYear(), mi, d);
       const val = onelineEntries[dk] || '';
       const isToday = (d === today.getDate() && mi === today.getMonth());
+      const safeVal = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       entries += `
         <div class="oneline-entry ${isToday ? 'today-row' : ''}" ${isToday ? 'id="oneline-today"' : ''}>
           <div class="oneline-day">${d}</div>
-          <input class="oneline-input" value="${val.replace(/"/g, '&quot;')}"
-            placeholder="${isToday ? 'Write today\'s line…' : '—'}"
-            oninput="saveOneline('${dk}', this.value)">
+          <div class="oneline-input"
+            contenteditable="true"
+            data-dk="${dk}"
+            data-placeholder="${isToday ? 'Write today’s line…' : '—'}"
+            oninput="saveOneline('${dk}', this.innerText)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();}"
+          >${safeVal}</div>
           ${isToday ? '<span class="today-badge">Today</span>' : ''}
         </div>`;
     }
