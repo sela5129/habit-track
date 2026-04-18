@@ -441,6 +441,12 @@
     font-weight: 600;
     border-radius: 50%;
   }
+  .cal-day.selected-day {
+    background: var(--gold-light);
+    color: var(--slate-deep);
+    font-weight: 600;
+    border-radius: 50%;
+  }
   .cal-day.has-entry {
     border-bottom: 2px solid var(--gold-light);
   }
@@ -1347,9 +1353,12 @@ function renderTrackerSummary(days) {
 // DAILY JOURNAL
 // ════════════════════════════════════
 function renderJournal() {
-  const d = today;
+  // Build a Date object for the currently selected journal day
+  const selectedDate = new Date(today.getFullYear(), today.getMonth(), currentJournalDay);
+  const isSelectedToday = currentJournalDay === today.getDate();
+
   const opts = { weekday:'long', month:'long', day:'numeric', year:'numeric' };
-  document.getElementById('journalDateDisplay').textContent = d.toLocaleDateString('en-US', opts);
+  document.getElementById('journalDateDisplay').textContent = selectedDate.toLocaleDateString('en-US', opts);
   document.getElementById('journalPromptDisplay').textContent = `"${prompts[selectedPrompt]}"`;
 
   // Prompt picker
@@ -1361,7 +1370,7 @@ function renderJournal() {
     </div>
   `).join('');
 
-  // Mini calendar
+  // Mini calendar — highlight selected day AND today
   document.getElementById('calMiniHeader').textContent = MONTHS[today.getMonth()];
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
   const days = daysInMonth(today.getFullYear(), today.getMonth());
@@ -1371,11 +1380,12 @@ function renderJournal() {
     const dk = dayKey(today.getFullYear(), today.getMonth(), d);
     const hasEntry = !!journalEntries[dk];
     const isToday = d === today.getDate();
-    cal += `<div class="cal-day ${isToday ? 'today' : ''} ${hasEntry && !isToday ? 'has-entry' : ''}" onclick="selectJournalDay(${d})">${d}</div>`;
+    const isSelected = d === currentJournalDay && !isToday;
+    cal += `<div class="cal-day ${isToday ? 'today' : ''} ${isSelected ? 'selected-day' : ''} ${hasEntry && !isToday && !isSelected ? 'has-entry' : ''}" onclick="selectJournalDay(${d})">${d}</div>`;
   }
   document.getElementById('calMiniGrid').innerHTML = cal;
 
-  // Lines
+  // Lines — load entry for the SELECTED day
   const dk = dayKey(today.getFullYear(), today.getMonth(), currentJournalDay);
   const entry = journalEntries[dk] || { lines: Array(12).fill(''), mood: null };
   const linesEl = document.getElementById('journalLines');
