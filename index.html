@@ -7,22 +7,32 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cream: #FAF7F2;
-    --paper: #F5F0E8;
-    --ink: #1A1714;
-    --ink-light: #4A4540;
-    --ink-faint: #9A9590;
-    --amber: #C8A96E;
-    --amber-dark: #A8893E;
-    --amber-light: #E8D5A8;
-    --amber-pale: #F5EDD8;
+    --cream: #F4F6FA;
+    --paper: #EBEef5;
+    --ink: #18202E;
+    --ink-light: #3A4558;
+    --ink-faint: #8A96AA;
+    --amber: #C9A84C;
+    --amber-dark: #A07C28;
+    --amber-light: #E8D49A;
+    --amber-pale: #F6EFD8;
     --rust: #C4704A;
-    --sage: #7A9E7E;
-    --line: #E0D8CC;
-    --dot: #D0C8B8;
-    --check: #C8A96E;
-    --shadow: rgba(26,23,20,0.08);
-    --shadow-deep: rgba(26,23,20,0.16);
+    --sage: #5B8FA8;
+    --line: #D4DAE8;
+    --dot: #BEC6D8;
+    --check: #C9A84C;
+    --shadow: rgba(18,28,50,0.09);
+    --shadow-deep: rgba(18,28,50,0.18);
+    /* new slate palette */
+    --slate: #2D3E5C;
+    --slate-mid: #4A5E7A;
+    --slate-light: #7A90AA;
+    --slate-pale: #E2E8F2;
+    --slate-deep: #1A2840;
+    --gold: #C9A84C;
+    --gold-dark: #A07C28;
+    --gold-light: #E8D49A;
+    --gold-pale: #F6EFD8;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,8 +48,8 @@
   /* ── NAV ── */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    background: var(--cream);
-    border-bottom: 1px solid var(--line);
+    background: var(--slate-deep);
+    border-bottom: 1px solid var(--slate);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 28px;
     height: 56px;
@@ -49,13 +59,13 @@
     font-size: 18px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: var(--ink);
+    color: #fff;
   }
-  .nav-logo span { color: var(--amber); }
+  .nav-logo span { color: var(--gold); }
   .nav-tabs {
     display: flex; gap: 2px;
-    background: var(--paper);
-    border: 1px solid var(--line);
+    background: var(--slate);
+    border: 1px solid var(--slate-mid);
     border-radius: 8px;
     padding: 3px;
   }
@@ -64,7 +74,7 @@
     border-radius: 6px;
     border: none;
     background: transparent;
-    color: var(--ink-faint);
+    color: var(--slate-light);
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     font-weight: 500;
@@ -74,15 +84,16 @@
     transition: all 0.18s;
   }
   .nav-tab.active {
-    background: var(--cream);
-    color: var(--ink);
-    box-shadow: 0 1px 4px var(--shadow);
+    background: var(--gold);
+    color: var(--slate-deep);
+    box-shadow: 0 1px 4px var(--shadow-deep);
+    font-weight: 700;
   }
-  .nav-tab:hover:not(.active) { color: var(--ink-light); }
+  .nav-tab:hover:not(.active) { color: #fff; }
   .nav-date {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    color: var(--ink-faint);
+    color: var(--slate-light);
     letter-spacing: 0.06em;
   }
 
@@ -99,18 +110,19 @@
     padding: 36px 40px 28px;
     border-bottom: 1px solid var(--line);
     background: var(--cream);
+    border-left: 4px solid var(--slate);
   }
   .section-header h2 {
     font-family: 'Playfair Display', serif;
     font-size: 28px;
     font-weight: 600;
     letter-spacing: -0.03em;
-    color: var(--ink);
+    color: var(--slate-deep);
     margin-bottom: 4px;
   }
   .section-header p {
     font-size: 13px;
-    color: var(--ink-faint);
+    color: var(--slate-light);
     font-weight: 300;
   }
   .section-header .month-nav {
@@ -128,13 +140,14 @@
     display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
   }
-  .month-nav button:hover { background: var(--paper); border-color: var(--amber); color: var(--amber-dark); }
+  .month-nav button:hover { background: var(--slate-pale); border-color: var(--slate); color: var(--slate); }
   .month-nav .month-label {
     font-family: 'DM Mono', monospace;
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--ink-light);
+    color: var(--slate);
+    font-weight: 600;
   }
 
   /* ═══════════════════════════════
@@ -142,59 +155,92 @@
   ═══════════════════════════════ */
   .tracker-body { padding: 32px 40px; }
 
-  .habit-grid-wrapper {
+  /* Two-panel frozen column tracker */
+  .habit-grid-outer {
+    display: flex;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 14px;
     overflow: hidden;
     box-shadow: 0 2px 16px var(--shadow);
   }
-
-  .habit-grid {
-    width: 100%;
-    border-collapse: collapse;
+  .habit-names-panel {
+    flex-shrink: 0;
+    z-index: 2;
+    background: var(--slate-pale);
+    border-right: 2px solid var(--slate-light);
+    box-shadow: 2px 0 10px rgba(18,28,50,0.10);
   }
-  .habit-grid th {
-    padding: 10px 6px;
+  .habit-names-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .habit-days-panel {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-width: 0;
+  }
+  .habit-days-table {
+    border-collapse: collapse;
+    width: max-content;
+  }
+  /* Names panel styles */
+  .habit-names-table th {
+    padding: 10px 16px 10px 20px;
     font-family: 'DM Mono', monospace;
     font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--ink-faint);
-    text-align: center;
-    border-bottom: 1px solid var(--line);
-    background: var(--paper);
-  }
-  .habit-grid th.habit-name-col {
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--slate-light);
     text-align: left;
-    padding-left: 20px;
-    width: 180px;
-  }
-  .habit-grid td {
     border-bottom: 1px solid var(--line);
-    border-right: 1px solid var(--line);
+    background: var(--slate-pale);
+    white-space: nowrap;
+    min-width: 150px;
   }
-  .habit-grid tr:last-child td { border-bottom: none; }
-  .habit-grid td.habit-name {
-    padding: 14px 20px;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--ink);
-    border-right: 2px solid var(--line);
-    background: var(--paper);
-    min-width: 180px;
+  .habit-names-table td {
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--slate-pale);
   }
-  .habit-grid td.habit-name input {
+  .habit-names-table tr:last-child td { border-bottom: none; }
+  .habit-name-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 12px 14px 20px;
+    min-height: 49px;
+  }
+  .habit-name-cell input {
     border: none;
     background: transparent;
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
     color: var(--ink);
-    width: 130px;
+    width: 110px;
     outline: none;
+    min-width: 0;
   }
-  .habit-grid td.habit-name input::placeholder { color: var(--dot); font-style: italic; }
-  .habit-grid td.habit-name { display: flex; align-items: center; justify-content: space-between; }
+  .habit-name-cell input::placeholder { color: var(--dot); font-style: italic; }
+  /* Days panel styles */
+  .habit-days-table th {
+    padding: 10px 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--slate-light);
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    background: var(--slate-pale);
+    min-width: 36px;
+  }
+  .habit-days-table td {
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+  .habit-days-table tr:last-child td { border-bottom: none; }
   .delete-habit-btn {
     opacity: 0;
     background: none;
@@ -218,12 +264,12 @@
     transition: background 0.12s;
     min-width: 28px;
   }
-  .day-cell:hover { background: var(--amber-pale); }
+  .day-cell:hover { background: var(--slate-pale); }
 
   .dot-check {
     width: 18px; height: 18px;
     border-radius: 50%;
-    border: 1.5px solid var(--dot);
+    border: 1.5px solid var(--slate-light);
     margin: 0 auto;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
@@ -232,8 +278,8 @@
     position: relative;
   }
   .dot-check.checked {
-    background: var(--amber);
-    border-color: var(--amber);
+    background: var(--gold);
+    border-color: var(--gold-dark);
   }
   .dot-check.checked::after {
     content: '';
@@ -266,9 +312,9 @@
     display: inline-flex; align-items: center; gap: 4px;
     padding: 2px 8px;
     border-radius: 20px;
-    background: var(--amber-pale);
-    color: var(--amber-dark);
-    font-weight: 500;
+    background: var(--slate-pale);
+    color: var(--slate-mid);
+    font-weight: 600;
   }
 
   /* add habit row */
@@ -287,7 +333,7 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-  .add-habit-btn:hover { border-color: var(--amber); color: var(--amber-dark); }
+  .add-habit-btn:hover { border-color: var(--slate); color: var(--slate); }
 
   /* summary row */
   .tracker-summary {
@@ -322,7 +368,7 @@
     color: var(--ink-faint);
     margin-top: 4px;
   }
-  .summary-card.gold .value { color: var(--amber-dark); }
+  .summary-card.gold .value { color: var(--slate); }
 
   /* ═══════════════════════════════
      DAILY JOURNAL
@@ -373,13 +419,13 @@
   }
   .cal-day:hover { background: var(--amber-pale); }
   .cal-day.today {
-    background: var(--amber);
+    background: var(--slate);
     color: #fff;
     font-weight: 600;
     border-radius: 50%;
   }
   .cal-day.has-entry {
-    border-bottom: 2px solid var(--amber-light);
+    border-bottom: 2px solid var(--gold-light);
   }
 
   .prompt-picker {
@@ -426,7 +472,7 @@
 
   .journal-page-header {
     padding: 24px 32px 20px;
-    border-bottom: 2px solid var(--amber-light);
+    border-bottom: 2px solid var(--gold-light);
     background: var(--paper);
     display: flex; align-items: flex-end; justify-content: space-between;
   }
@@ -457,7 +503,7 @@
     flex-shrink: 0;
     font-family: 'DM Mono', monospace;
     font-size: 10px;
-    color: var(--dot);
+    color: var(--slate-light);
     padding: 12px 6px 12px 12px;
     text-align: right;
     border-right: 1px solid var(--line);
@@ -502,7 +548,7 @@
   .mood-btn:hover, .mood-btn.active { opacity: 1; transform: scale(1.15); }
   .save-entry-btn {
     padding: 8px 20px;
-    background: var(--amber);
+    background: var(--slate);
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -513,7 +559,7 @@
     letter-spacing: 0.02em;
     transition: all 0.15s;
   }
-  .save-entry-btn:hover { background: var(--amber-dark); transform: translateY(-1px); box-shadow: 0 3px 10px var(--shadow-deep); }
+  .save-entry-btn:hover { background: var(--slate-deep); transform: translateY(-1px); box-shadow: 0 3px 10px var(--shadow-deep); }
 
   /* ═══════════════════════════════
      ONE LINE PER DAY
@@ -544,10 +590,11 @@
     font-family: 'DM Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.04em;
-    background: var(--amber-pale);
-    color: var(--amber-dark);
+    background: var(--slate-pale);
+    color: var(--slate-mid);
     padding: 3px 8px;
     border-radius: 20px;
+    font-weight: 600;
   }
   .oneline-entry {
     display: flex; align-items: center; gap: 0;
@@ -566,7 +613,7 @@
   }
   .oneline-entry.today-row .oneline-day {
     color: var(--amber-dark);
-    font-weight: 500;
+    font-weight: 700;
   }
   .oneline-input {
     flex: 1;
@@ -579,9 +626,38 @@
     background: transparent;
     transition: background 0.12s;
   }
-  .oneline-input:focus { background: var(--amber-pale); }
-  .oneline-entry.today-row { background: #fffdf8; }
-  .oneline-entry.today-row .oneline-input { font-style: italic; }
+  .oneline-input:focus { background: var(--slate-pale); }
+  .oneline-entry.today-row {
+    background: linear-gradient(90deg, var(--slate-pale) 0%, var(--cream) 100%);
+    border-left: 3px solid var(--slate);
+    position: relative;
+  }
+  .oneline-entry.today-row .oneline-day {
+    padding-left: 13px; /* compensate for 3px border */
+  }
+  .oneline-entry.today-row .oneline-input {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .oneline-entry.today-row .oneline-input::placeholder {
+    color: var(--slate-mid);
+    opacity: 0.8;
+    font-style: italic;
+  }
+  .today-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--slate-deep);
+    background: var(--gold);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    align-self: center;
+    font-weight: 700;
+  }
 
   /* ═══════════════════════════════
      DOT GRID (Notes)
@@ -603,9 +679,9 @@
     transition: all 0.12s;
   }
   .notes-toolbar button:hover, .notes-toolbar button.active {
-    border-color: var(--amber);
-    color: var(--amber-dark);
-    background: var(--amber-pale);
+    border-color: var(--slate);
+    color: var(--slate);
+    background: var(--slate-pale);
   }
   .notes-toolbar .sep {
     width: 1px; height: 20px; background: var(--line); margin: 0 4px;
@@ -685,10 +761,11 @@
   .index-pg {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    color: var(--amber-dark);
+    color: var(--slate);
     width: 30px;
     text-align: right;
     flex-shrink: 0;
+    font-weight: 600;
   }
   .index-entry input {
     flex: 1; border: none; outline: none;
@@ -698,6 +775,18 @@
     background: transparent;
   }
   .index-entry input::placeholder { color: var(--dot); }
+
+  /* Sync row heights between frozen and scroll panels */
+  .habit-names-table tr, .habit-days-table tr {
+    height: 49px;
+  }
+  .habit-names-table td, .habit-days-table td {
+    height: 49px;
+  }
+  /* delete btn visible on touch */
+  @media (hover: none) {
+    .delete-habit-btn { opacity: 0.4; }
+  }
 
   /* ── Animations ── */
   .page { animation: fadeIn 0.25s ease; }
@@ -735,7 +824,7 @@
     transition: color 0.15s;
   }
   .mobile-tab .icon { font-size: 16px; }
-  .mobile-tab.active { color: var(--amber-dark); }
+  .mobile-tab.active { color: var(--slate); }
   @media (max-width: 768px) {
     .mobile-tabs { display: flex; }
     main { margin-bottom: 64px; }
@@ -770,11 +859,21 @@
       </div>
     </div>
     <div class="tracker-body">
-      <div class="habit-grid-wrapper">
-        <table class="habit-grid" id="habitTable">
-          <thead id="habitTableHead"></thead>
-          <tbody id="habitTableBody"></tbody>
-        </table>
+      <div class="habit-grid-outer">
+        <!-- Frozen left panel: habit names -->
+        <div class="habit-names-panel">
+          <table class="habit-names-table" id="habitNamesTable">
+            <thead id="habitNamesHead"></thead>
+            <tbody id="habitNamesBody"></tbody>
+          </table>
+        </div>
+        <!-- Scrollable right panel: day columns -->
+        <div class="habit-days-panel" id="habitDaysPanel">
+          <table class="habit-days-table" id="habitDaysTable">
+            <thead id="habitDaysHead"></thead>
+            <tbody id="habitDaysBody"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="tracker-summary" id="trackerSummary"></div>
@@ -966,64 +1065,90 @@ function renderTracker() {
   document.getElementById('trackerMonthLabel').textContent =
     `${MONTHS[currentMonth].toUpperCase()} ${currentYear}`;
 
-  // Header
-  const head = document.getElementById('habitTableHead');
-  let hRow = `<tr><th class="habit-name-col">HABIT</th>`;
-  for (let d = 1; d <= days; d++) {
-    const dk = dayKey(currentYear, currentMonth, d);
-    const isToday = (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear());
-    hRow += `<th style="${isToday ? 'color:var(--amber-dark);font-weight:600;' : ''}">${d}</th>`;
-  }
-  hRow += `<th style="min-width:70px">STREAK</th></tr>`;
-  head.innerHTML = hRow;
+  const isCurrentMonth = (currentMonth === today.getMonth() && currentYear === today.getFullYear());
 
-  // Body
-  const body = document.getElementById('habitTableBody');
-  body.innerHTML = '';
+  // ── Names panel header
+  document.getElementById('habitNamesHead').innerHTML =
+    `<tr><th>HABIT</th></tr>`;
+
+  // ── Days panel header
+  let dHead = `<tr>`;
+  for (let d = 1; d <= days; d++) {
+    const isToday = isCurrentMonth && d === today.getDate();
+    dHead += `<th id="th-day-${d}" style="${isToday ? 'color:var(--amber-dark);font-weight:700;' : ''}">${d}</th>`;
+  }
+  dHead += `<th style="min-width:72px;padding-right:16px;">STREAK</th></tr>`;
+  document.getElementById('habitDaysHead').innerHTML = dHead;
+
+  // ── Bodies
+  const namesBody = document.getElementById('habitNamesBody');
+  const daysBody  = document.getElementById('habitDaysBody');
+  namesBody.innerHTML = '';
+  daysBody.innerHTML  = '';
 
   habits.forEach((habit, hi) => {
-    const tr = document.createElement('tr');
-    let streak = 0, tempStreak = 0;
-
-    // Calculate streak (count backwards from today)
-    for (let d = days; d >= 1; d--) {
-      const dk = dayKey(currentYear, currentMonth, d);
-      const ck = checkKey(hi, dk);
-      if (checks[ck]) tempStreak++;
-      else tempStreak = 0;
-    }
-    // Simple streak: consecutive from today backward
-    for (let d = (currentMonth === today.getMonth() && currentYear === today.getFullYear() ? today.getDate() : days); d >= 1; d--) {
-      const dk = dayKey(currentYear, currentMonth, d);
-      if (checks[checkKey(hi, dk)]) streak++;
+    // streak calc
+    let streak = 0;
+    for (let d = (isCurrentMonth ? today.getDate() : days); d >= 1; d--) {
+      if (checks[checkKey(hi, dayKey(currentYear, currentMonth, d))]) streak++;
       else break;
     }
+    const emoji = streak >= 7 ? '🔥' : streak >= 3 ? '✨' : '';
 
-    let row = `<td class="habit-name"><input value="${habit.name}" placeholder="Add habit…" onchange="renameHabit(${hi}, this.value)"><button class="delete-habit-btn" onclick="deleteHabit(${hi})" title="Delete habit">×</button></td>`;
+    // Name row
+    const ntr = document.createElement('tr');
+    ntr.innerHTML = `<td>
+      <div class="habit-name-cell">
+        <input value="${habit.name}" placeholder="Add habit…" onchange="renameHabit(${hi}, this.value)">
+        <button class="delete-habit-btn" onclick="deleteHabit(${hi})" title="Delete">×</button>
+      </div>
+    </td>`;
+    namesBody.appendChild(ntr);
+
+    // Days row
+    const dtr = document.createElement('tr');
+    let dayCells = '';
     for (let d = 1; d <= days; d++) {
       const dk = dayKey(currentYear, currentMonth, d);
-      const ck = checkKey(hi, dk);
-      const checked = checks[ck];
-      const isToday = (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear());
-      row += `<td class="day-cell${isToday ? ' today-cell' : ''}">
-        <div class="dot-check ${checked ? 'checked' : ''}" onclick="toggleCheck(${hi}, '${dk}', this)" style="${isToday ? 'border-color:var(--amber-light);' : ''}"></div>
+      const checked = checks[checkKey(hi, dk)];
+      const isToday = isCurrentMonth && d === today.getDate();
+      dayCells += `<td class="day-cell${isToday ? ' today-cell' : ''}">
+        <div class="dot-check ${checked ? 'checked' : ''}" onclick="toggleCheck(${hi},'${dk}',this)"
+          style="${isToday ? 'border-color:var(--amber);' : ''}"></div>
       </td>`;
     }
-    const emoji = streak >= 7 ? '🔥' : streak >= 3 ? '✨' : '';
-    row += `<td class="streak-cell"><span class="streak-badge">${emoji} ${streak}d</span></td>`;
-    tr.innerHTML = row;
-    body.appendChild(tr);
+    dayCells += `<td class="streak-cell"><span class="streak-badge">${emoji} ${streak}d</span></td>`;
+    dtr.innerHTML = dayCells;
+    daysBody.appendChild(dtr);
   });
 
-  // Add habit row
-  const addRow = document.createElement('tr');
-  addRow.className = 'add-habit-row';
-  addRow.innerHTML = `<td colspan="${days + 2}">
+  // Add habit row — names panel
+  const addNameRow = document.createElement('tr');
+  addNameRow.className = 'add-habit-row';
+  addNameRow.innerHTML = `<td style="padding:12px 20px;background:var(--paper);">
     <button class="add-habit-btn" onclick="addHabit()">+ Add habit</button>
   </td>`;
-  body.appendChild(addRow);
+  namesBody.appendChild(addNameRow);
+
+  // Add habit row — days panel (empty spacer to match height)
+  const addDayRow = document.createElement('tr');
+  addDayRow.className = 'add-habit-row';
+  addDayRow.innerHTML = `<td colspan="${days + 1}" style="padding:12px 0;background:var(--paper);"></td>`;
+  daysBody.appendChild(addDayRow);
 
   renderTrackerSummary(days);
+
+  // Scroll days panel to center on today
+  if (isCurrentMonth) {
+    setTimeout(() => {
+      const panel = document.getElementById('habitDaysPanel');
+      const todayCells = panel.querySelectorAll('.today-cell');
+      if (panel && todayCells.length) {
+        const cell = todayCells[0];
+        panel.scrollLeft = Math.max(0, cell.offsetLeft - panel.clientWidth / 2 + cell.offsetWidth / 2);
+      }
+    }, 60);
+  }
 }
 
 function toggleCheck(hi, dk, el) {
@@ -1208,15 +1333,16 @@ function renderOneLine() {
       const val = onelineEntries[dk] || '';
       const isToday = (d === today.getDate() && mi === today.getMonth());
       entries += `
-        <div class="oneline-entry ${isToday ? 'today-row' : ''}">
+        <div class="oneline-entry ${isToday ? 'today-row' : ''}" ${isToday ? 'id="oneline-today"' : ''}>
           <div class="oneline-day">${d}</div>
           <input class="oneline-input" value="${val.replace(/"/g, '&quot;')}"
-            placeholder="${isToday ? 'Write today\u0027s line\u2026' : '\u2014'}"
+            placeholder="${isToday ? 'Write today\'s line…' : '—'}"
             oninput="saveOneline('${dk}', this.value)">
+          ${isToday ? '<span class="today-badge">Today</span>' : ''}
         </div>`;
     }
     grid.innerHTML += `
-      <div class="oneline-month">
+      <div class="oneline-month" ${mi === today.getMonth() ? 'id="oneline-current-month"' : ''}>
         <div class="oneline-month-header">
           <span class="month-title">${month}</span>
           <span class="prompt-tag">${today.getFullYear()}</span>
@@ -1224,6 +1350,14 @@ function renderOneLine() {
         ${entries}
       </div>`;
   });
+
+  // Scroll so today's row is near the top of the viewport
+  setTimeout(() => {
+    const todayEl = document.getElementById('oneline-today');
+    if (todayEl) {
+      todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 80);
 }
 
 function saveOneline(dk, val) {
