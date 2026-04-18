@@ -196,8 +196,8 @@
     text-align: left;
     border-bottom: 1px solid var(--line);
     background: var(--slate-pale);
-    white-space: nowrap;
-    min-width: 150px;
+    white-space: normal;
+    min-width: 120px;
   }
   .habit-names-table td {
     padding: 0;
@@ -209,20 +209,32 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 12px 14px 20px;
+    padding: 10px 8px 10px 14px;
     min-height: 49px;
   }
-  .habit-name-cell input {
+  .habit-name-text {
     border: none;
     background: transparent;
     font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--ink);
-    width: 110px;
+    flex: 1;
     outline: none;
     min-width: 0;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.45;
+    cursor: text;
+    padding: 2px 0;
   }
-  .habit-name-cell input::placeholder { color: var(--dot); font-style: italic; }
+  .habit-name-text:empty::before {
+    content: attr(data-placeholder);
+    color: var(--dot);
+    font-style: italic;
+    pointer-events: none;
+  }
+  .habit-name-text:focus { outline: none; }
   /* Days panel styles */
   .habit-days-table th {
     padding: 10px 6px;
@@ -809,10 +821,23 @@
 
   /* Sync row heights between frozen and scroll panels */
   .habit-names-table tr, .habit-days-table tr {
-    height: 49px;
+    height: auto;
   }
   .habit-names-table td, .habit-days-table td {
-    height: 49px;
+    height: auto;
+    min-height: 49px;
+    vertical-align: middle;
+  }
+  /* On mobile, shrink day circles slightly to fit more */
+  @media (max-width: 768px) {
+    .habit-names-table th { min-width: 120px; font-size: 9px; }
+    .habit-days-table th { min-width: 30px; padding: 8px 3px; font-size: 9px; }
+    .day-cell { min-width: 30px; padding: 8px 2px; }
+    .dot-check { width: 16px; height: 16px; }
+    .habit-name-cell { padding: 8px 6px 8px 12px; }
+    .habit-name-text { font-size: 12px; }
+    .streak-cell { padding: 6px 10px 6px 4px; }
+    .streak-badge { font-size: 10px; padding: 1px 5px; }
   }
   /* delete btn visible on touch */
   @media (hover: none) {
@@ -866,7 +891,13 @@
   @media (max-width: 768px) {
     .mobile-tabs { display: flex; }
     main { margin-bottom: 64px; }
-    .nav-date { display: none; }
+    .nav-date {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      text-align: right;
+      line-height: 1.3;
+    }
   }
 </style>
 </head>
@@ -1147,7 +1178,12 @@ function renderTracker() {
     const ntr = document.createElement('tr');
     ntr.innerHTML = `<td>
       <div class="habit-name-cell">
-        <input value="${habit.name}" placeholder="Add habit…" onchange="renameHabit(${hi}, this.value)">
+        <div class="habit-name-text"
+          contenteditable="true"
+          data-hi="${hi}"
+          data-placeholder="Add habit…"
+          oninput="renameHabit(${hi}, this.innerText.trim())"
+        >${habit.name}</div>
         <button class="delete-habit-btn" onclick="deleteHabit(${hi})" title="Delete">×</button>
       </div>
     </td>`;
@@ -1186,17 +1222,30 @@ function renderTracker() {
 
   renderTrackerSummary(days);
 
-  // Scroll days panel to center on today
-  if (isCurrentMonth) {
-    setTimeout(() => {
+  // Sync row heights between frozen names panel and scrollable days panel
+  setTimeout(() => {
+    const nameRows = document.querySelectorAll('#habitNamesBody tr');
+    const dayRows  = document.querySelectorAll('#habitDaysBody tr');
+    nameRows.forEach((nr, i) => {
+      if (!dayRows[i]) return;
+      // reset first
+      nr.style.height = '';
+      dayRows[i].style.height = '';
+      const h = Math.max(nr.offsetHeight, dayRows[i].offsetHeight);
+      nr.style.height = h + 'px';
+      dayRows[i].style.height = h + 'px';
+    });
+
+    // Scroll days panel to center on today
+    if (isCurrentMonth) {
       const panel = document.getElementById('habitDaysPanel');
       const todayCells = panel.querySelectorAll('.today-cell');
       if (panel && todayCells.length) {
         const cell = todayCells[0];
         panel.scrollLeft = Math.max(0, cell.offsetLeft - panel.clientWidth / 2 + cell.offsetWidth / 2);
       }
-    }, 60);
-  }
+    }
+  }, 60);
 }
 
 function toggleCheck(hi, dk, el) {
