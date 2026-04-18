@@ -625,8 +625,39 @@
     color: var(--ink);
     background: transparent;
     transition: background 0.12s;
+    /* allow horizontal scroll to read long entries */
+    overflow-x: auto;
+    white-space: nowrap;
+    min-width: 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* hide scrollbar Firefox */
   }
+  .oneline-input::-webkit-scrollbar { display: none; } /* hide scrollbar Chrome/Safari */
   .oneline-input:focus { background: var(--slate-pale); }
+  /* fade edge hint that there's more text */
+  .oneline-entry {
+    position: relative;
+    overflow: hidden;
+  }
+  .oneline-entry::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 32px;
+    background: linear-gradient(to right, transparent, var(--cream));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .oneline-entry:has(.oneline-input:not(:placeholder-shown))::after {
+    opacity: 1;
+  }
+  .oneline-entry:has(.oneline-input:focus)::after {
+    opacity: 0;
+  }
+  .oneline-entry.today-row::after {
+    background: linear-gradient(to right, transparent, var(--cream));
+  }
   .oneline-entry.today-row {
     background: linear-gradient(90deg, var(--slate-pale) 0%, var(--cream) 100%);
     border-left: 3px solid var(--slate);
