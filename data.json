@@ -1,0 +1,102 @@
+{
+  "habits": [
+    {
+      "name": "One simple to do "
+    },
+    {
+      "name": "Exercise"
+    },
+    {
+      "name": "Read before phone"
+    },
+    {
+      "name": "Gratitude"
+    }
+  ],
+  "checks": {
+    "h0_2026-04-17": true,
+    "h0_2026-04-16": true,
+    "h1_2026-04-16": true,
+    "h1_2026-04-15": true,
+    "h1_2026-04-14": true,
+    "h1_2026-04-13": true,
+    "h1_2026-04-12": true,
+    "h1_2026-04-17": true,
+    "h2_2026-04-17": true,
+    "h2_2026-04-16": true,
+    "h2_2026-04-15": true,
+    "h3_2026-04-15": true,
+    "h3_2026-04-16": true,
+    "h3_2026-04-17": true,
+    "h3_2026-04-18": true,
+    "h1_2026-04-18": true,
+    "h2_2026-04-18": true,
+    "h2_2026-04-19": false,
+    "h0_2026-04-18": true
+  },
+  "journalEntries": {
+    "2026-04-16": {
+      "lines": [
+        "I listened to my audiobook “the mountain is you”. ",
+        "Healing is usually thought of as peaceful and enjoyable and comfortable but it is the complete opposite ",
+        "Healing your mind is different than healing your body. You’re gutting yourself and becoming new. \n\nHealing the body puts you back into a previous state, while healing mentally/emotionally is totally new transformation into something new ",
+        "You do not find resolutions in avoiding the problem. ",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "mood": null
+    },
+    "2026-04-17": {
+      "lines": [
+        "I’m learning that motivation can be really bad if not used properly. What I mean by that is motivation is a trap that everyone falls for. It feels amazing in the moment, it gives you that rush and surge of I can conquer the world energy but then it fades fast. And you crash harder than before. ",
+        "This is why consistency is different. It doesn’t need good feelings to survive. It doesn’t care if you’re having a bad day. It just needs commitment. ",
+        "If you picture a river cutting through solid rock is not because of raw power. It’s the persistence of the river. It doesn’t take days off. It doesn’t wait to feel motivated. It keeps flowing day after day. Drop after drop and it quietly shapes the hardest stone on either. ",
+        "Consistency does this for our life. It might look slow on the outside but it’s unstoppable  ",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "mood": "🙂"
+    },
+    "2026-04-18": {
+      "lines": [
+        "I’m grateful to make pizzas with my family and include my mom and nephew. It’ll be a fun experience for everyone ",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "mood": "🙂"
+    }
+  },
+  "onelineEntries": {
+    "2026-04-16": "Healing is not pretty ",
+    "2026-04-17": "Marcus Aurelius ",
+    "2026-04-18": "The happiness of your life depends on the quality of your thoughts"
+  },
+  "notesData": {
+    "A": ""
+  },
+  "notesIndex": [],
+  "journalPrompts": {
+    "2026-04-18": 1
+  }
+}
