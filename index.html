@@ -60,26 +60,30 @@
     height: 64px;
   }
   .nav-logo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    line-height: 1;
+  }
+  .nav-wordmark {
     font-family: 'Playfair Display', serif;
     font-size: 17px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    line-height: 1.15;
-    gap: 3px;
+    white-space: nowrap;
   }
-  .nav-logo > span:not(.nav-tagline) { color: var(--gold); }
+  .nav-dot { color: var(--gold); }
   .nav-tagline {
     font-family: 'DM Mono', monospace;
-    font-size: 7.5px;
+    font-size: 7px;
     font-weight: 400;
-    letter-spacing: 0.28em;
+    letter-spacing: 0.25em;
     color: var(--gold);
     text-transform: uppercase;
     opacity: 0.55;
+    white-space: nowrap;
   }
   .nav-tabs {
     display: flex; gap: 2px;
@@ -1066,10 +1070,7 @@
 <body>
 
 <nav>
-  <div class="nav-logo">
-  DIS<span>·</span>Journal
-  <span class="nav-tagline">DO IT SCARED</span>
-</div>
+  <div class="nav-logo"><span class="nav-wordmark">DIS<span class="nav-dot">·</span>Journal</span><span class="nav-tagline">DO IT SCARED</span></div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('tracker')">Tracker</button>
     <button class="nav-tab" onclick="showPage('journal')">Journal</button>
