@@ -87,6 +87,23 @@
         ""
       ],
       "mood": "🙂"
+    },
+    "2026-04-19": {
+      "lines": [
+        "I feel really good. It was a great day. The pizzas went exceptionally! ",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "mood": null
     }
   },
   "onelineEntries": {
@@ -110,6 +127,7 @@
   "journalPrompts": {
     "2026-04-18": 1,
     "2026-04-17": 5,
-    "2026-04-16": 5
+    "2026-04-16": 5,
+    "2026-04-19": 4
   }
 }
